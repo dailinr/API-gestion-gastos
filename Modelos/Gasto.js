@@ -22,7 +22,7 @@ const GastoSchema = Schema({
     },
     cuenta: {
         type: Schema.ObjectId,
-        ref: "Cuenta",
+        ref: "Cuenta"
     }
 });
 

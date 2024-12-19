@@ -5,9 +5,11 @@ const mongoose = require('mongoose');
 // Definimos la estructura de nuestro modelo
 const CuentaSchema = Schema({
 
-    fecha: {
+    fechaInicial: {
         type: Date,
-        default: Date.now,
+    },
+    fechaFinal: {
+        type: Date,
     },
     semanal: {
         type: Number,
@@ -20,6 +22,28 @@ const CuentaSchema = Schema({
 });
 
 // CuentaSchema.plugin(mongoosePaginate);
+// Middleware `pre` para calcular las fechas antes de guardar
+CuentaSchema.pre("save", function (next) {
+    const now = new Date(); // Fecha actual
+    const dayOfWeek = now.getDay(); // Día de la semana (0: Domingo, 1: Lunes, ..., 6: Sábado)
+
+    // Calcular el lunes de la semana actual
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Ajustar para que Domingo (0) sea el último día de la semana
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + mondayOffset);
+    monday.setHours(0, 0, 0, 0); // Establecer la hora en medianoche
+
+    // Calcular el domingo de la semana actual
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6); // El domingo está 6 días después del lunes
+
+    // Asignar las fechas al documento
+    this.fechaInicial = monday;
+    this.fechaFinal = sunday;
+
+    next();
+});
+
 
 // Exportamos el modelo
 module.exports = model("Cuenta", CuentaSchema, "cuentas");
