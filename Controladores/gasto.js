@@ -7,7 +7,7 @@ const pruebaGasto = (req, res) => {
     });
 }
 
-const guardarGastos = async(req, res) => {
+const guardar = async(req, res) => {
 
     const { etiqueta, descripcion, valor, fecha } = req.body;
     
@@ -52,8 +52,37 @@ const guardarGastos = async(req, res) => {
     
 }
 
+const eliminar = async(req, res) => {
+
+    const id = req.params.id;
+
+    try{
+        if(!id || id.length !== 24){
+            return res.status(400).json({
+                status: "error",
+                mensaje: "Id no valido",
+            })
+        }
+        const gastoEliminado = await Gasto.findOneAndDelete({ "_id": id });
+
+        // Devolver resultado
+        return res.status(200).json({
+            status: "success",
+            mensaje: "gasto eliminado correctamente",
+            gasto: gastoEliminado,
+        });
+    }
+    catch(error){
+        return res.status(500).send({
+            status: "error",
+            mensaje: "Error al eliminar gasto"
+        })
+    }
+}
+
                                                  
 module.exports = {
     pruebaGasto,
-    guardarGastos
+    guardar,
+    eliminar
 }

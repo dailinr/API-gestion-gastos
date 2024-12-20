@@ -5,6 +5,8 @@ const ControladorGasto = require("../Controladores/gasto");
 const Gasto = require("../Modelos/Gasto");
 
 router.get("/prueba", ControladorGasto.pruebaGasto);
-router.post("/add-gasto", ControladorGasto.guardarGastos);
+router.post("/add-gasto", ControladorGasto.guardar);
+router.delete("/eliminar-gasto/:id", ControladorGasto.eliminar);
+
 
 module.exports = router;

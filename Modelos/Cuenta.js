@@ -15,10 +15,6 @@ const CuentaSchema = Schema({
         type: Number,
         required: true,
     },
-    total: {
-        type: Number,
-        required: true,
-    }
 });
 
 // CuentaSchema.plugin(mongoosePaginate);
