@@ -1,7 +1,6 @@
 const Cuenta = require("../Modelos/Cuenta");
 const Gasto = require("../Modelos/Gasto");
-
-
+const Ingreso = require("../Modelos/Ingreso");
 
 const pruebaCuenta = (req, res) => {
     
@@ -70,11 +69,17 @@ const calcularTotalSemanal = async (req, res) => {
             });
         }
 
-        // Obtener los gastos asociados a esta cuenta
+        // Obtener los ingresos asociados a esta cuenta (semana)
+        const ingresos = await Ingreso.find({ cuenta: cuentaActual._id }).sort({fecha: -1});
+
+        // Obtener los gastos asociados a esta cuenta (semana)
         const gastos = await Gasto.find({ cuenta: cuentaActual._id }).sort({fecha: -1});
 
         // Calcular el total sumando los valores de los gastos
-        const totalSemanal = gastos.reduce((suma, gasto) => suma + gasto.valor, 0);
+        let totalIngresos = ingresos.reduce((suma, ingreso) => suma + ingreso.valor, 0);
+        let totalGastos =  gastos.reduce((suma, gasto) => suma + gasto.valor, 0);
+
+        const totalSemanal =  totalIngresos - totalGastos;
 
         // Actualizar el total en la cuenta
         cuentaActual.semanal = totalSemanal;
@@ -85,7 +90,10 @@ const calcularTotalSemanal = async (req, res) => {
             mensaje: "Total semanal calculado con éxito",
             cuenta: cuentaActual,
             totalSemanal,
+            totalIngresos,
+            totalGastos,
             gastos,
+            ingresos
         });
     } 
     catch (error) {
