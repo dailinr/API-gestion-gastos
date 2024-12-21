@@ -135,12 +135,25 @@ const listarPorSemana = async (req, res) => {
 
     try {
         // Obtener parámetros de paginación
-        const { page = 1, limit = 10 } = req.query;
+        let pageCuenta = 1;
+        let pageDatos = 1;
 
-        // Obtener todas las cuentas ordenadas por fecha
-        const cuentas = await Cuenta.find().sort({ fechaInicial: 1 });
+        if(req.params.pageCuenta) pageCuenta = req.params.pageCuenta;
+        if(req.params.pageDatos) pageDatos = req.params.pageDatos;
 
-        if (cuentas.length === 0) {
+        const limitCuenta = 1;
+        const limitDatos = 10;
+
+        // Paginar las cuentas ordenadas por fecha
+        const cuentas = await Cuenta.paginate({},
+            {
+                page: parseInt(pageCuenta), // Página actual
+                limit: parseInt(limitCuenta), // Límite por página
+                sort: { fechaInicial: 1 }, // Ordenar por fecha inicial ascendente
+            }
+        );
+
+        if (cuentas.docs.length === 0) {
             return res.status(404).json({
                 status: "error",
                 message: "No se encontraron cuentas en la base de datos",
@@ -150,15 +163,15 @@ const listarPorSemana = async (req, res) => {
         // Crear un arreglo para almacenar los datos por cuenta (semana)
         const resultados = await Promise.all(
 
-            cuentas.map(async (cuenta) => {
+            cuentas.docs.map(async (cuenta) => {
                 
                 // Obtener gastos relacionados con la cuenta
                 
                 const gastos = await Gasto.paginate(
                     { cuenta: cuenta._id }, // Filtrar por cuenta
                     {
-                        page: parseInt(page), // Página actual
-                        limit: parseInt(limit), // Límite por página
+                        page: parseInt(pageDatos), // Página actual
+                        limit: parseInt(limitDatos), // Límite por página
                         sort: { fecha: -1 }, // Ordenar por fecha descendente
                     }
                 );
@@ -166,8 +179,8 @@ const listarPorSemana = async (req, res) => {
                 const ingresos = await Ingreso.paginate(
                     { cuenta: cuenta._id }, // Filtrar por cuenta
                     {
-                        page: parseInt(page), // Página actual
-                        limit: parseInt(limit), // Límite por página
+                        page: parseInt(pageDatos), // Página actual
+                        limit: parseInt(limitDatos), // Límite por página
                         sort: { fecha: -1 }, // Ordenar por fecha descendente
                     }
                 );
@@ -186,8 +199,8 @@ const listarPorSemana = async (req, res) => {
                     totalIngresos,
                     totalGastos,
                     totalSemanal,
-                    gastos: gastos.docs,
-                    ingresos: ingresos.docs,
+                    gastos,
+                    ingresos,
                 };
             })
         );
@@ -195,6 +208,14 @@ const listarPorSemana = async (req, res) => {
         return res.status(200).json({
             status: "success",
             message: "Gastos e ingresos paginados por cuenta obtenidos con éxito",
+            paginacion: {
+                totalDocs: cuentas.totalDocs,
+                totalPages: cuentas.totalPages,
+                currentPage: cuentas.page,
+                hasPrevPage: cuentas.hasPrevPage,
+                hasNextPage: cuentas.hasNextPage,
+                
+            },
             resultados,
         });
     } 

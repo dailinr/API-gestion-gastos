@@ -8,6 +8,6 @@ router.get("/prueba", ControladorCuenta.pruebaCuenta);
 router.get("/add-cuenta", ControladorCuenta.guardarCuenta);
 router.get("/calcular-semana", ControladorCuenta.calcularTotalSemanal);
 router.get("/calcular-acumulado", ControladorCuenta.calcularAcumulado);
-router.get("/listar-semana", ControladorCuenta.listarPorSemana);
+router.get("/listar-semana/:pageCuenta?/:pageDatos?", ControladorCuenta.listarPorSemana);
 
 module.exports = router;
