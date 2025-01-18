@@ -1,5 +1,6 @@
 const Gasto = require("../Modelos/Gasto");
 const Cuenta = require("../Modelos/Cuenta");
+const dayjs = require('dayjs');  // Importar dayjs
 
 const pruebaGasto = (req, res) => {
     return res.status(200).send({
@@ -16,13 +17,13 @@ const guardar = async(req, res) => {
             return res.status(400).json({ status: "error", message: "Todos los campos son obligatorios" });
         }
 
-        // Usar la fecha actual si no se proporciona
-        const fechaGasto = fecha ? new Date(fecha) : new Date();
+        // Usar la fecha proporcionada o la fecha actual ajustada a la zona horaria local
+        const fechaGasto = fecha ? dayjs(fecha).startOf('day') : dayjs().startOf('day'); // Asegura que la fecha se obtenga desde medianoche
 
         // Buscar la cuenta que incluya el rango de fecha del gasto
         const cuentaAsociada = await Cuenta.findOne({
-            fechaInicial: { $lte: fechaGasto }, // menor o igual que
-            fechaFinal: { $gte: fechaGasto } // mayor o igual que
+            fechaInicial: { $lte: fechaGasto.toDate() }, // menor o igual que
+            fechaFinal: { $gte: fechaGasto.toDate() }    // mayor o igual que
         });
 
         if (!cuentaAsociada) {
@@ -35,7 +36,8 @@ const guardar = async(req, res) => {
         // Crear y guardar el nuevo gasto
         const gasto = new Gasto({
             etiqueta, descripcion, valor,
-            fecha: fechaGasto, cuenta: cuentaAsociada._id
+            fecha: fechaGasto.toDate(), 
+            cuenta: cuentaAsociada._id
         });
 
         const gastoGuardado = await gasto.save();

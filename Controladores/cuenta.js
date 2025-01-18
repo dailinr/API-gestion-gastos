@@ -1,6 +1,7 @@
 const Cuenta = require("../Modelos/Cuenta");
 const Gasto = require("../Modelos/Gasto");
 const Ingreso = require("../Modelos/Ingreso");
+const dayjs = require('dayjs');
 
 const pruebaCuenta = (req, res) => {
     
@@ -12,22 +13,19 @@ const pruebaCuenta = (req, res) => {
 const guardarCuenta = async(req, res) => {
 
     try {
-        const fechaActual = new Date();
+       // Utiliza Day.js para obtener la fecha actual ajustada a la zona horaria local
+       const fechaActual = dayjs().startOf('day'); // Esto obtendrá la fecha a medianoche en la zona horaria local
 
         // Buscar la cuenta que incluye la fecha actual
         const cuentaActual = await Cuenta.findOne({
-            fechaInicial: { $lte: fechaActual },
-            fechaFinal: { $gte: fechaActual },
+            fechaInicial: { $lte: fechaActual.toDate() },  // Convierte Day.js a Date
+            fechaFinal: { $gte: fechaActual.toDate() },    // Convierte Day.js a Date
         });
 
         if(!cuentaActual){
 
             // Si no existe la cuenta, crear una nueva
-            const nuevaCuenta = new Cuenta({
-                semanal: 0,
-                total: 0,
-            });
-    
+            const nuevaCuenta = new Cuenta();
             await nuevaCuenta.save();
             
             return res.status(200).send({
@@ -56,12 +54,12 @@ const guardarCuenta = async(req, res) => {
 const calcularTotalSemanal = async (req, res) => {
     
     try {
-        const fechaActual = new Date();
+        const fechaActual = dayjs().startOf('day'); // Ajusta la fecha a medianoche
 
         // Buscar la cuenta que incluye la fecha actual
         const cuentaActual = await Cuenta.findOne({
-            fechaInicial: { $lte: fechaActual },
-            fechaFinal: { $gte: fechaActual },
+            fechaInicial: { $lte: fechaActual.toDate() }, // Convierte Day.js a Date
+            fechaFinal: { $gte: fechaActual.toDate() },   // Convierte Day.js a Date
         });
 
         if (!cuentaActual) {
@@ -135,11 +133,8 @@ const listarPorSemana = async (req, res) => {
 
     try {
         // Obtener parámetros de paginación
-        let pageCuenta = 1;
-        let pageDatos = 1;
-
-        if(req.params.pageCuenta) pageCuenta = req.params.pageCuenta;
-        if(req.params.pageDatos) pageDatos = req.params.pageDatos;
+        const pageCuenta = parseInt(req.params.pageCuenta) || 1;
+        const pageDatos = parseInt(req.params.pageDatos) || 1;
 
         const limitCuenta = 1;
         const limitDatos = 10;
@@ -147,8 +142,8 @@ const listarPorSemana = async (req, res) => {
         // Paginar las cuentas ordenadas por fecha
         const cuentas = await Cuenta.paginate({},
             {
-                page: parseInt(pageCuenta), // Página actual
-                limit: parseInt(limitCuenta), // Límite por página
+                page: pageCuenta, // Página actual
+                limit: limitCuenta, // Límite por página
                 sort: { fechaInicial: 1 }, // Ordenar por fecha inicial ascendente
             }
         );
@@ -170,8 +165,8 @@ const listarPorSemana = async (req, res) => {
                 const gastos = await Gasto.paginate(
                     { cuenta: cuenta._id }, // Filtrar por cuenta
                     {
-                        page: parseInt(pageDatos), // Página actual
-                        limit: parseInt(limitDatos), // Límite por página
+                        page: pageDatos, // Página actual
+                        limit: limitDatos, // Límite por página
                         sort: { fecha: -1 }, // Ordenar por fecha descendente
                     }
                 );
@@ -179,8 +174,8 @@ const listarPorSemana = async (req, res) => {
                 const ingresos = await Ingreso.paginate(
                     { cuenta: cuenta._id }, // Filtrar por cuenta
                     {
-                        page: parseInt(pageDatos), // Página actual
-                        limit: parseInt(limitDatos), // Límite por página
+                        page: pageDatos, // Página actual
+                        limit: limitDatos, // Límite por página
                         sort: { fecha: -1 }, // Ordenar por fecha descendente
                     }
                 );
@@ -226,8 +221,6 @@ const listarPorSemana = async (req, res) => {
         });
     }
 };
-
-
 
 module.exports = {
     pruebaCuenta,
