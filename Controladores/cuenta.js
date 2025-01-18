@@ -133,11 +133,32 @@ const listarPorSemana = async (req, res) => {
 
     try {
         // Obtener parámetros de paginación
-        const pageCuenta = parseInt(req.params.pageCuenta) || 1;
+        let pageCuenta = parseInt(req.params.pageCuenta) || null;
         const pageDatos = parseInt(req.params.pageDatos) || 1;
 
         const limitCuenta = 1;
-        const limitDatos = 10;
+        const limitDatos = 6;
+
+        // Obtener la fecha actual
+        const fechaActual = dayjs().startOf('day'); // Ajusta la fecha a medianoche
+
+        // Buscar la cuenta que incluye la fecha actual
+        const cuentaActual = await Cuenta.findOne({
+            fechaInicial: { $lte: fechaActual.toDate() }, // Convierte Day.js a Date
+            fechaFinal: { $gte: fechaActual.toDate() },   // Convierte Day.js a Date
+        }).sort({ fechaInicial: 1 });
+
+        // Si no se especificó una página y existe una cuenta actual, determinar la página correspondiente
+        if (!pageCuenta && cuentaActual) {
+            const posicionCuenta = await Cuenta.countDocuments({ 
+                fechaInicial: { $lt: cuentaActual.fechaInicial } 
+            });
+
+            pageCuenta = Math.floor(posicionCuenta / limitCuenta) + 1;
+        }
+
+        // Establecer la página por defecto en caso de que no se determine
+        pageCuenta = pageCuenta || 1;
 
         // Paginar las cuentas ordenadas por fecha
         const cuentas = await Cuenta.paginate({},

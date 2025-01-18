@@ -32,7 +32,7 @@ CuentaSchema.pre("save", function (next) {
     // Calcular el domingo de la semana actual
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6); // El domingo está 6 días después del lunes
-    sunday.setHours(23, 59, 59, 999);
+    
     
     // Asignar las fechas al documento
     this.fechaInicial = monday;
