@@ -85,6 +85,26 @@ const calcularTotalSemanal = async (req, res) => {
         cuentaActual.semanal = totalSemanal;
         await cuentaActual.save();
 
+        // Agrupar categorías (ingresos y gastos) ignorando espacios y mayúsculas
+        const normalizarTexto = (texto) => texto.replace(/\s+/g, "").toLowerCase();
+
+        const categoriasGastos = gastos.reduce((acumulador, gasto) => {
+            const etiqueta = gasto.etiqueta ? gasto.etiqueta : ""; // Cambié "categoria" por "etiqueta"
+            const etiquetaNormalizada = normalizarTexto(etiqueta);
+
+            if (!acumulador[etiquetaNormalizada]) {
+                acumulador[etiquetaNormalizada] = {
+                    etiquetaOriginal: etiqueta, // Puede variar, elige la primera encontrada
+                    items: [],
+                    totalCategoria: 0,
+                };
+            }
+            acumulador[etiquetaNormalizada].items.push(gasto);
+            acumulador[etiquetaNormalizada].totalCategoria += gasto.valor; // Sumamos el valor
+            return acumulador;
+        }, {});
+
+
         return res.status(200).json({
             status: "success",
             mensaje: "Total semanal calculado con éxito",
@@ -93,7 +113,8 @@ const calcularTotalSemanal = async (req, res) => {
             totalIngresos,
             totalGastos,
             gastos,
-            ingresos
+            ingresos,
+            categoriasGastos
         });
     } 
     catch (error) {
