@@ -85,21 +85,30 @@ const calcularTotalSemanal = async (req, res) => {
         cuentaActual.semanal = totalSemanal;
         await cuentaActual.save();
 
+        // Formatear fechas y agregar día de la semana
+        const formatearConDia = (items) =>
+            items.map(item => ({
+                ...item._doc, // Copia los datos originales
+                diaSemana: dayjs(item.fecha).format('dddd'), // Formatea el día de la semana
+            }));
+
+        const gastosConDia = formatearConDia(gastos);
+        const ingresosConDia = formatearConDia(ingresos);
+
         // Agrupar categorías (ingresos y gastos) ignorando espacios y mayúsculas
         const normalizarTexto = (texto) => texto.replace(/\s+/g, "").toLowerCase();
 
-        const categoriasGastos = gastos.reduce((acumulador, gasto) => {
+        const categoriasGastos = gastosConDia.reduce((acumulador, gasto) => {
             const etiqueta = gasto.etiqueta ? gasto.etiqueta : ""; // Cambié "categoria" por "etiqueta"
             const etiquetaNormalizada = normalizarTexto(etiqueta);
 
             if (!acumulador[etiquetaNormalizada]) {
                 acumulador[etiquetaNormalizada] = {
                     etiquetaOriginal: etiqueta, // Puede variar, elige la primera encontrada
-                    items: [],
                     totalCategoria: 0,
                 };
             }
-            acumulador[etiquetaNormalizada].items.push(gasto);
+            
             acumulador[etiquetaNormalizada].totalCategoria += gasto.valor; // Sumamos el valor
             return acumulador;
         }, {});
@@ -112,8 +121,8 @@ const calcularTotalSemanal = async (req, res) => {
             totalSemanal,
             totalIngresos,
             totalGastos,
-            gastos,
-            ingresos,
+            gastos: gastosConDia,
+            ingresos: ingresosConDia,
             categoriasGastos
         });
     } 
