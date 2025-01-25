@@ -81,9 +81,66 @@ const eliminar = async(req, res) => {
         })
     }
 }
+
+const editar = async (req, res) => {
+    
+    try{
+        const id = req.params.id;
+
+        if(!id || id.length !== 24){
+            return res.status(400).json({
+                status: "error",
+                mensaje: "Id no valido",
+            })
+        }
+
+        const { etiqueta, descripcion, valor, fecha } = req.body;
+        
+        if (!etiqueta || !descripcion || !valor ) {
+            return res.status(400).json({ status: "error", message: "Faltan datos por enviar" });
+        }
+        
+        // Usar la fecha proporcionada o la fecha actual ajustada a la zona horaria local
+        const fechaGasto = fecha ? dayjs(fecha).startOf('day') : dayjs().startOf('day'); // Asegura que la fecha se obtenga desde medianoche
+        
+        const gastoActualizado = await Gasto.findOneAndUpdate(
+            { "_id": id }, 
+            {
+                $set: {
+                    etiqueta, descripcion, valor,
+                    fecha: fechaGasto.toDate()
+                }  
+            },
+            { new: true }
+        );
+
+        // Verificar si el gasto fue actualizado
+        if (!gastoActualizado) {
+            return res.status(404).json({
+                status: "error",
+                mensaje: "Error al actualizar el gasto"
+            });
+        }
+
+        // Devolver resultado
+        return res.status(200).json({
+            status: "success",
+            mensaje: "gasto actualizado correctamente",
+            gasto: gastoActualizado
+        });
+
+    }
+    catch(error){
+        return res.status(500).send({
+            status: "error",
+            mensaje: "Error al editar gasto"
+        })
+    }
+}
                                               
 module.exports = {
     pruebaGasto,
     guardar,
     eliminar,
+    editar
 }
