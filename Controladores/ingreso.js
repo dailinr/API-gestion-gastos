@@ -1,12 +1,12 @@
 const Ingreso = require("../Modelos/Ingreso");
 const Cuenta = require("../Modelos/Cuenta");
+const dayjs = require('dayjs');  // Importar dayjs
 
 const pruebaIngreso = (req, res) => {
     return res.status(200).send({
         mensaje: "Prueba controlador de ingresos",
     });
 }
-
 
 const guardar = async(req, res) => {
 
@@ -18,12 +18,12 @@ const guardar = async(req, res) => {
         }
 
         // Usar la fecha actual si no se proporciona
-        const fechaIngreso = fecha ? new Date(fecha) : new Date();
+        const fechaIngreso = fecha ? dayjs(fecha).startOf('day') : dayjs().startOf('day'); 
 
         // Buscar la cuenta que incluya el rango de fecha del ingreso
         const cuentaAsociada = await Cuenta.findOne({
-            fechaInicial: { $lte: fechaIngreso }, // menor o igual que
-            fechaFinal: { $gte: fechaIngreso } // mayor o igual que
+            fechaInicial: { $lte: fechaIngreso.toDate() }, // menor o igual que
+            fechaFinal: { $gte: fechaIngreso.toDate() } // mayor o igual que
         });
 
         if (!cuentaAsociada) {
@@ -36,7 +36,7 @@ const guardar = async(req, res) => {
         // Crear y guardar el nuevo ingreso
         const ingreso = new Ingreso({
             etiqueta, descripcion, valor,
-            fecha: fechaIngreso, cuenta: cuentaAsociada._id
+            fecha: fechaIngreso.toDate(), cuenta: cuentaAsociada._id
         });
 
         const ingresoGuardado = await ingreso.save();
@@ -81,9 +81,67 @@ const eliminar = async(req, res) => {
     }
 }
 
+
+const editar = async (req, res) => {
+    
+    try{
+        const id = req.params.id;
+
+        if(!id || id.length !== 24){
+            return res.status(400).json({
+                status: "error",
+                mensaje: "Id no valido",
+            })
+        }
+
+        const { etiqueta, descripcion, valor, fecha } = req.body;
+        
+        if (!etiqueta || !descripcion || !valor ) {
+            return res.status(400).json({ status: "error", message: "Faltan datos por enviar" });
+        }
+        
+        // Usar la fecha proporcionada o la fecha actual ajustada a la zona horaria local
+        const fechaIngreso = fecha ? dayjs(fecha).startOf('day') : dayjs().startOf('day'); 
+        
+        const ingresoActualizado = await Ingreso.findOneAndUpdate(
+            { "_id": id }, 
+            {
+                $set: {
+                    etiqueta, descripcion, valor,
+                    fecha: fechaIngreso.toDate()
+                }  
+            },
+            { new: true }
+        );
+
+        // Verificar si el ingreso fue actualizado
+        if (!ingresoActualizado) {
+            return res.status(404).json({
+                status: "error",
+                mensaje: "Error al actualizar el ingreso"
+            });
+        }
+
+        // Devolver resultado
+        return res.status(200).json({
+            status: "success",
+            mensaje: "ingreso actualizado correctamente",
+            ingreso: ingresoActualizado
+        });
+
+    }
+    catch(error){
+        return res.status(500).send({
+            status: "error",
+            mensaje: "Error al editar ingreso"
+        });
+    }
+}
+
                                                  
 module.exports = {
     pruebaIngreso,
     guardar,
-    eliminar
+    eliminar,
+    editar
 }

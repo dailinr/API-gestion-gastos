@@ -211,8 +211,17 @@ const listarPorSemana = async (req, res) => {
 
             cuentas.docs.map(async (cuenta) => {
                 
-                // Obtener gastos relacionados con la cuenta
-                
+                // Obtener gastos relacionados con la cuenta (sin paginación)
+                const totalIngresos = await Ingreso.aggregate([
+                    { $match: { cuenta: cuenta._id } },
+                    { $group: { _id: null, total: { $sum: "$valor" } } },
+                ]);
+                const totalGastos = await Gasto.aggregate([
+                    { $match: { cuenta: cuenta._id } },
+                    { $group: { _id: null, total: { $sum: "$valor" } } },
+                ]);
+
+                // paginar los gastos e ingresos relacionados con la cuenta
                 const gastos = await Gasto.paginate(
                     { cuenta: cuenta._id }, // Filtrar por cuenta
                     {
@@ -232,18 +241,18 @@ const listarPorSemana = async (req, res) => {
                 );
 
                 // Calcular el total sumando los valores de los gastos
-                let totalIngresos = ingresos.docs.reduce((suma, ingreso) => suma + ingreso.valor, 0);
-                let totalGastos =  gastos.docs.reduce((suma, gasto) => suma + gasto.valor, 0);
-
-                const totalSemanal =  totalIngresos - totalGastos;
+                const totalIngresosValor = totalIngresos[0]?.total || 0;
+                const totalGastosValor =  totalGastos[0]?.total || 0;
+                console.log(totalIngresosValor, totalGastosValor);
+                const totalSemanal =  totalIngresosValor - totalGastosValor;
 
 
                 return {
                     cuentaId: cuenta._id,
                     fechaInicial: cuenta.fechaInicial,
                     fechaFinal: cuenta.fechaFinal,
-                    totalIngresos,
-                    totalGastos,
+                    totalIngresos: totalIngresosValor,
+                    totalGastos: totalGastosValor,
                     totalSemanal,
                     gastos,
                     ingresos,
