@@ -3,11 +3,11 @@
 Esta página web permite llevar un control detallado de ingresos y egresos semanales. Ofrece herramientas para visualizar datos financieros y administrar gastos de manera eficiente. <br>
 📎 https://youtu.be/bGLWdjngTpo?si=mmH7NSF_GfVV78qV
 
-## API https://github.com/dailinr/API-gestion-gastos
+## Front-End https://github.com/dailinr/gestion-gastos
 
 ### 📊 Dashboard y Visualización de Datos
 
-<img src="./src/assets/images/gestion_gastos(1).jpg" alt="Dashboard" width="800" height="auto">
+<img src="./images/gestion_gastos(1).jpg" alt="Dashboard" width="800" height="auto">
 
 * Gráficos y diagramas para una mejor comprensión de los ingresos y gastos.
 * Resumen total de todas las semanas registradas.
@@ -19,7 +19,7 @@ Esta página web permite llevar un control detallado de ingresos y egresos seman
 
 ## 📌 Gestión de Gastos
 
-<img src="./src/assets/images/listado_gastos.jpg" alt="Listado gastos"  width="800" height="auto">
+<img src="./images/listado_gastos.jpg" alt="Listado gastos"  width="800" height="auto">
 
 * Visualización de registros acumulados de la semana.
 * Cálculo total del gasto semanal.
