@@ -10,8 +10,9 @@ const puerto = process.env.PORT || 3000; // Usar el puerto dinámico de Vercel
 
 // Configuración de CORS
 const corsOptions = {
-  origin: ["https://gestion-gastos-vert.vercel.app"],
+  origin: "*",  // ⚠️ Permite cualquier origen (puedes restringirlo a tu dominio)
   methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
 };
 
