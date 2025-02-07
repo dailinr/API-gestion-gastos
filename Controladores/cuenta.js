@@ -6,6 +6,7 @@ const dayjs = require('dayjs');
 const pruebaCuenta = (req, res) => {
     
     return res.status(200).send({
+        status: "success",
         mensaje: "Prueba controlador de cuenta",
     });
 }

@@ -20,10 +20,29 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // puedo recibir datos en formato form-urlencoded
 
-// Conexión a MongoDB (sin variables de entorno)
-mongoose.connect('mongodb+srv://dailinromero123:dailinromero123@cluster0.pu51f.mongodb.net/test?retryWrites=true&w=majority&appName=Cluster0')
-    .then(() => console.log("Conectado a la base de datos"))
-    .catch((error) => console.error("Error de conexión", error));
+
+// 🔹 Conexión optimizada a MongoDB para Vercel
+let isConnected; // Variable global para evitar múltiples conexiones
+
+async function connectDB() {
+  if (isConnected) {
+    console.log("Usando conexión existente a MongoDB.");
+    return;
+  }
+  try {
+    await mongoose.connect('mongodb+srv://dailinromero123:dailinromero123@cluster0.pu51f.mongodb.net/test?retryWrites=true&w=majority&appName=Cluster0', {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    });
+    isConnected = mongoose.connection.readyState === 1;
+    console.log("Conectado a la base de datos");
+  } catch (error) {
+    console.error("Error de conexión a MongoDB", error);
+  }
+}
+
+// 🔹 Llamar a la conexión antes de usar cualquier ruta
+connectDB();
 
 // Rutas de prueba
 app.get("/", (req, res) => {
