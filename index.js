@@ -30,10 +30,8 @@ async function connectDB() {
     return;
   }
   try {
-    await mongoose.connect('mongodb+srv://dailinromero123:dailinromero123@cluster0.pu51f.mongodb.net/test?retryWrites=true&w=majority&appName=Cluster0', {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    });
+    await mongoose.connect('mongodb://dhayromero27:dayromero27@cluster0-shard-00-00.i5sfh.mongodb.net:27017,cluster0-shard-00-01.i5sfh.mongodb.net:27017,cluster0-shard-00-02.i5sfh.mongodb.net:27017/?ssl=true&replicaSet=atlas-qmxs04-shard-0&authSource=admin&retryWrites=true&w=majority&appName=Cluster0');
+    
     isConnected = mongoose.connection.readyState === 1;
     console.log("Conectado a la base de datos");
   } catch (error) {
