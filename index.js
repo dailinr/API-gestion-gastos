@@ -24,11 +24,8 @@ app.use(express.urlencoded({ extended: true })); // puedo recibir datos en forma
 mongoose.connect('mongodb+srv://dailinromero123:dailinromero123@cluster0.pu51f.mongodb.net/test?retryWrites=true&w=majority&appName=Cluster0');
 
 // Rutas de prueba
-app.get("/prueba", (req, res) => {
-  res.status(200).json({
-    status: "success",
-    mensaje: "¡Ruta de prueba funcionando correctamente!",
-  });
+app.get("/", (req, res) => {
+  res.json("Hola");
 });
 
 // RUTAS DE LA APP
