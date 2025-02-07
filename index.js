@@ -1,27 +1,28 @@
-// const { conexion } = require("./database/conexion"); // importar archivo de conexion
-const express = require("express"); // importo el paquete express de mis dependencias
+const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 
 console.log("App node arrancada");
-// conexion();
 
 // Crear servidor Node
 const app = express();
-const puerto = 49151;
+const puerto = process.env.PORT || 3000; // Usar el puerto dinámico de Vercel
 
-// Configurar cors
-app.use(cors({  // se ejecuta el cors antes de que se ejecute cualquier ruta
+// Configuración de CORS
+const corsOptions = {
   origin: ["https://gestion-gastos-vert.vercel.app"],
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
-}));
+};
 
-// Convertir body a objeto js
-app.use(express.json());  // parsea automaticamente los datos a json
+app.use(cors(corsOptions));
+app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // puedo recibir datos en formato form-urlencoded
 
-mongoose.connect('mongodb+srv://dailinromero123:dailinromero123@cluster0.pu51f.mongodb.net/test?retryWrites=true&w=majority&appName=Cluster0');
+// Conexión a MongoDB (sin variables de entorno)
+mongoose.connect('mongodb+srv://dailinromero123:dailinromero123@cluster0.pu51f.mongodb.net/test?retryWrites=true&w=majority&appName=Cluster0')
+    .then(() => console.log("Conectado a la base de datos"))
+    .catch((error) => console.error("Error de conexión", error));
 
 // Rutas de prueba
 app.get("/", (req, res) => {
@@ -33,12 +34,17 @@ const rutas_cuenta = require("./Rutas/cuenta");
 const rutas_gasto = require("./Rutas/gasto");
 const rutas_ingreso = require("./Rutas/ingreso");
 
-// Cargar rutas
 app.use("/api/cuentas", rutas_cuenta);
 app.use("/api/gastos", rutas_gasto);
 app.use("/api/ingresos", rutas_ingreso);
 
-// Crear servidor y escuchar peticiones http
-app.listen(puerto, () => { // se pasa un puerto como parametro y funcion verifique q el servidor corra
+// Middleware de manejo de errores
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ error: err.message });
+});
+
+// Crear servidor
+app.listen(puerto, () => {
   console.log("Servidor corriendo en el puerto: " + puerto);
 });
