@@ -79,10 +79,9 @@ const eliminar = async(req, res) => {
         })
     }
 }
-
-                                                 
+                                              
 module.exports = {
     pruebaGasto,
     guardar,
-    eliminar
+    eliminar,
 }

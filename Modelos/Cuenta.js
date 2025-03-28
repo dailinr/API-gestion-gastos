@@ -1,6 +1,6 @@
 const { Schema, model } = require("mongoose");
 const mongoose = require('mongoose');
-// const mongoosePaginate = require('mongoose-paginate-v2');
+const mongoosePaginate = require('mongoose-paginate-v2');
 
 // Definimos la estructura de nuestro modelo
 const CuentaSchema = Schema({
@@ -17,7 +17,6 @@ const CuentaSchema = Schema({
     },
 });
 
-// CuentaSchema.plugin(mongoosePaginate);
 // Middleware `pre` para calcular las fechas antes de guardar
 CuentaSchema.pre("save", function (next) {
     const now = new Date(); // Fecha actual
@@ -40,6 +39,7 @@ CuentaSchema.pre("save", function (next) {
     next();
 });
 
+CuentaSchema.plugin(mongoosePaginate);
 
 // Exportamos el modelo
 module.exports = model("Cuenta", CuentaSchema, "cuentas");

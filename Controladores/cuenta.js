@@ -34,6 +34,8 @@ const guardarCuenta = async(req, res) => {
                 status: "success",
                 mensaje: "ruta de guardar cuenta",
                 cuenta: nuevaCuenta,
+                totalIngresos: 0,
+                totalGastos: 0,
             });
         }
         else{
@@ -104,7 +106,6 @@ const calcularTotalSemanal = async (req, res) => {
     }
 };
 
-
 // Calcular el acumulado de todas las cuentas (semanas)
 const calcularAcumulado = async (req, res) => {
 
@@ -130,10 +131,87 @@ const calcularAcumulado = async (req, res) => {
     }
 };
 
+const listarPorSemana = async (req, res) => {
+
+    try {
+        // Obtener parámetros de paginación
+        const { page = 1, limit = 10 } = req.query;
+
+        // Obtener todas las cuentas ordenadas por fecha
+        const cuentas = await Cuenta.find().sort({ fechaInicial: 1 });
+
+        if (cuentas.length === 0) {
+            return res.status(404).json({
+                status: "error",
+                message: "No se encontraron cuentas en la base de datos",
+            });
+        }
+
+        // Crear un arreglo para almacenar los datos por cuenta (semana)
+        const resultados = await Promise.all(
+
+            cuentas.map(async (cuenta) => {
+                
+                // Obtener gastos relacionados con la cuenta
+                
+                const gastos = await Gasto.paginate(
+                    { cuenta: cuenta._id }, // Filtrar por cuenta
+                    {
+                        page: parseInt(page), // Página actual
+                        limit: parseInt(limit), // Límite por página
+                        sort: { fecha: -1 }, // Ordenar por fecha descendente
+                    }
+                );
+
+                const ingresos = await Ingreso.paginate(
+                    { cuenta: cuenta._id }, // Filtrar por cuenta
+                    {
+                        page: parseInt(page), // Página actual
+                        limit: parseInt(limit), // Límite por página
+                        sort: { fecha: -1 }, // Ordenar por fecha descendente
+                    }
+                );
+
+                // Calcular el total sumando los valores de los gastos
+                let totalIngresos = ingresos.docs.reduce((suma, ingreso) => suma + ingreso.valor, 0);
+                let totalGastos =  gastos.docs.reduce((suma, gasto) => suma + gasto.valor, 0);
+
+                const totalSemanal =  totalIngresos - totalGastos;
+
+
+                return {
+                    cuentaId: cuenta._id,
+                    fechaInicial: cuenta.fechaInicial,
+                    fechaFinal: cuenta.fechaFinal,
+                    totalIngresos,
+                    totalGastos,
+                    totalSemanal,
+                    gastos: gastos.docs,
+                    ingresos: ingresos.docs,
+                };
+            })
+        );
+
+        return res.status(200).json({
+            status: "success",
+            message: "Gastos e ingresos paginados por cuenta obtenidos con éxito",
+            resultados,
+        });
+    } 
+    catch (error) {
+        return res.status(500).json({
+            status: "error",
+            message: error.message,
+        });
+    }
+};
+
+
 
 module.exports = {
     pruebaCuenta,
     guardarCuenta,
     calcularTotalSemanal,
-    calcularAcumulado
+    calcularAcumulado,
+    listarPorSemana
 }

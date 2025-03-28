@@ -1,5 +1,5 @@
 const { Schema, model } = require("mongoose");
-// const mongoosePaginate = require('mongoose-paginate-v2');
+const mongoosePaginate = require('mongoose-paginate-v2');
 
 // Definimos la estructura de nuestro modelo
 const GastoSchema = Schema({
@@ -26,7 +26,7 @@ const GastoSchema = Schema({
     }
 });
 
-// GastoSchema.plugin(mongoosePaginate);
+GastoSchema.plugin(mongoosePaginate);
 
 // Exportamos el modelo
 module.exports = model("Gasto", GastoSchema, "gastos");

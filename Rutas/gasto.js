@@ -8,5 +8,4 @@ router.get("/prueba", ControladorGasto.pruebaGasto);
 router.post("/add-gasto", ControladorGasto.guardar);
 router.delete("/eliminar-gasto/:id", ControladorGasto.eliminar);
 
-
 module.exports = router;
